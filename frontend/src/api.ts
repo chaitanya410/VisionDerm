@@ -28,7 +28,7 @@ export interface SegmentResponse {
   count: number;
   severity: Severity;
   mask_png_base64: string;
-  overlay_png_base64: string;
+  overlay_png_base64: string | null;
   elapsed_ms: number;
 }
 
@@ -66,6 +66,9 @@ export interface SegmentOptions {
   maxArea: number;
   engine: "auto" | "classical" | "unet";
   drawBoxes: boolean;
+  /** Server-rendered overlay PNG. The UI renders from `lesions` + the mask,
+   *  so this is normally false - it saves roughly 1 MB per request. */
+  includeOverlay: boolean;
 }
 
 export async function segment(
@@ -81,6 +84,7 @@ export async function segment(
   fd.append("max_area", String(opts.maxArea));
   fd.append("engine", opts.engine);
   fd.append("draw_boxes", String(opts.drawBoxes));
+  fd.append("include_overlay", String(opts.includeOverlay));
 
   const r = await fetch(`${API}/segment`, { method: "POST", body: fd, signal });
   if (!r.ok) {

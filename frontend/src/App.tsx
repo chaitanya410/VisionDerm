@@ -66,6 +66,7 @@ export default function App() {
             maxArea: c.maxArea,
             engine: c.engine,
             drawBoxes: c.showBoxes,
+            includeOverlay: false,
           },
           ac.signal,
         );

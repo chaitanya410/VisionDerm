@@ -34,6 +34,7 @@ async def segment(
     max_area: int = Form(DEFAULT_MAX_AREA),
     engine: str = Form("auto"),
     draw_boxes: bool = Form(True),
+    include_overlay: bool = Form(True),
 ) -> SegmentResponse:
     if image.content_type not in ALLOWED_CONTENT_TYPES:
         raise HTTPException(415, f"Unsupported content type: {image.content_type}")
@@ -86,6 +87,10 @@ async def segment(
         count=result.count,
         severity=Severity(label=result.severity_label, score=result.severity_score),
         mask_png_base64=mask_to_base64(result.mask),
-        overlay_png_base64=overlay_to_base64(rgb, result, draw_boxes=draw_boxes),
+        overlay_png_base64=(
+            overlay_to_base64(rgb, result, draw_boxes=draw_boxes)
+            if include_overlay
+            else None
+        ),
         elapsed_ms=elapsed_ms,
     )

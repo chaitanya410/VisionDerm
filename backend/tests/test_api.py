@@ -69,3 +69,27 @@ def test_samples_endpoint():
     r = client.get("/api/samples")
     assert r.status_code == 200
     assert isinstance(r.json(), list)
+
+
+def test_segment_can_omit_overlay(synthetic_face):
+    rgb, _ = synthetic_face
+    files = {"image": ("face.png", _png_bytes(rgb), "image/png")}
+    data = {"include_overlay": "false"}
+
+    r = client.post("/api/segment", files=files, data=data)
+    assert r.status_code == 200, r.text
+    body = r.json()
+
+    assert body["overlay_png_base64"] is None
+    # The mask is still returned - the frontend renders from it.
+    assert isinstance(body["mask_png_base64"], str)
+    assert len(body["mask_png_base64"]) > 0
+
+
+def test_segment_includes_overlay_by_default(synthetic_face):
+    rgb, _ = synthetic_face
+    files = {"image": ("face.png", _png_bytes(rgb), "image/png")}
+
+    r = client.post("/api/segment", files=files)
+    assert r.status_code == 200, r.text
+    assert isinstance(r.json()["overlay_png_base64"], str)

@@ -37,7 +37,13 @@ class SegmentResponse(BaseModel):
     count: int
     severity: Severity
     mask_png_base64: str = Field(..., description="Full-resolution binary mask, PNG")
-    overlay_png_base64: str = Field(..., description="Original + translucent lesion overlay, PNG")
+    overlay_png_base64: str | None = Field(
+        None,
+        description=(
+            "Original + translucent lesion overlay, PNG. "
+            "Null when include_overlay=false."
+        ),
+    )
     elapsed_ms: float
 
 
