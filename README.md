@@ -1,7 +1,9 @@
-# Acne Image Segmentation
+# VisionDerm
 
-A full-stack web app that finds acne lesions in a face photo, outlines them,
-counts them, and estimates a severity band.
+Full-stack skin analysis web app. FastAPI + React 19 that detects and outlines
+acne lesions in a photo, counts them, and estimates severity. Ships a
+dependency-free classical CV pipeline (LAB a* top-hat redness + Haar face
+gating) with a pluggable engine interface for trained models.
 
 ![example output](docs/example_output.png)
 
