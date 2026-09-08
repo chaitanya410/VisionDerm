@@ -86,6 +86,23 @@ def test_segment_can_omit_overlay(synthetic_face):
     assert len(body["mask_png_base64"]) > 0
 
 
+def test_spa_root_serves_index_when_frontend_is_built():
+    from app.config import FRONTEND_DIST
+
+    if not FRONTEND_DIST.is_dir():
+        pytest.skip("frontend/dist not present - run `npm run build`")
+
+    r = client.get("/")
+    assert r.status_code == 200
+    assert "<!doctype html" in r.text.lower()
+
+
+def test_unknown_api_path_still_404s():
+    """The SPA catch-all must never swallow unmatched /api routes."""
+    r = client.get("/api/definitely-not-a-route")
+    assert r.status_code == 404
+
+
 def test_segment_includes_overlay_by_default(synthetic_face):
     rgb, _ = synthetic_face
     files = {"image": ("face.png", _png_bytes(rgb), "image/png")}
