@@ -1,0 +1,15 @@
+# Core web + inference stack.
+# Floors chosen so pip resolves pre-built wheels for Python 3.14.
+# Run `pip freeze > requirements.lock.txt` after install to pin exact versions.
+fastapi>=0.115
+uvicorn[standard]>=0.34
+python-multipart>=0.0.20
+pydantic>=2.10
+numpy>=2.3,<2.6
+opencv-python-headless>=4.11,<5   # 5.0.x is an alpha; stay on the stable 4.x line
+scikit-image>=0.25
+pillow>=11.1
+httpx>=0.28
+
+# Testing
+pytest>=8.3

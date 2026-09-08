@@ -1,0 +1,7 @@
+# OPTIONAL deep-learning path. Not needed to run the app.
+# Install with:  python -m pip install -r requirements-ml.txt
+# The API auto-detects backend/models/unet.pt and switches the engine badge to "U-Net".
+torch>=2.9
+segmentation-models-pytorch>=0.4.0
+albumentations>=1.4.0
+tqdm>=4.66
