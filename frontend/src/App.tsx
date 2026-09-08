@@ -11,12 +11,15 @@ import SampleGallery from "./components/SampleGallery";
 import ImageCanvas from "./components/ImageCanvas";
 import Controls, { type ControlState } from "./components/Controls";
 import ResultsPanel from "./components/ResultsPanel";
+import CameraView from "./components/CameraView";
 
 interface Source {
   url: string; // for display (object URL or sample URL)
   filename: string;
   origin: "upload" | "sample";
 }
+
+type InputMode = "upload" | "camera";
 
 const DEFAULT_CONTROLS: ControlState = {
   sensitivity: 2.5,
@@ -36,6 +39,7 @@ export default function App() {
   const [result, setResult] = useState<SegmentResponse | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<InputMode>("upload");
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const blobRef = useRef<Blob | null>(null); // bytes to POST for the current source
@@ -112,6 +116,16 @@ export default function App() {
     }
   }, []);
 
+  const setCameraCapture = useCallback((blob: Blob, filename: string) => {
+    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    const url = URL.createObjectURL(blob);
+    objectUrlRef.current = url;
+    blobRef.current = blob;
+    setResult(null);
+    setError(null);
+    setSource({ url, filename, origin: "upload" });
+  }, []);
+
   // Re-run whenever the source or a server-side parameter changes (debounced).
   const serverParamsKey = useMemo(
     () =>
@@ -174,7 +188,28 @@ export default function App() {
       <div className="grid gap-5 lg:grid-cols-[300px_minmax(0,1fr)_320px]">
         {/* Left: input */}
         <aside className="space-y-5">
-          <Dropzone onFile={setUploadFile} busy={busy} />
+          <div>
+            <div role="tablist" className="mb-3 flex gap-1 rounded-lg bg-slate-900 p-1">
+              {(["upload", "camera"] as const).map((m) => (
+                <button
+                  key={m}
+                  role="tab"
+                  aria-selected={mode === m}
+                  onClick={() => setMode(m)}
+                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium capitalize ${
+                    mode === m ? "bg-slate-700 text-slate-100" : "text-slate-400"
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
+            </div>
+            {mode === "upload" ? (
+              <Dropzone onFile={setUploadFile} busy={busy} />
+            ) : (
+              <CameraView onCapture={setCameraCapture} busy={busy} />
+            )}
+          </div>
           <div>
             <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
               Sample images
