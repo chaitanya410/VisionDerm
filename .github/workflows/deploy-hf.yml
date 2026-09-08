@@ -1,0 +1,98 @@
+name: Deploy to Hugging Face Spaces
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hf
+  cancel-in-progress: true
+
+env:
+  HF_SPACE: chaitanya410/VisionDerm
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Backend tests
+        working-directory: backend
+        run: python -m pytest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Frontend tests
+        working-directory: frontend
+        run: npm test
+
+      - name: Typecheck and build
+        working-directory: frontend
+        run: npm run build
+
+  deploy:
+    name: Push to Space
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepend Space frontmatter to README
+        # Hugging Face requires YAML frontmatter in the Space's README.md.
+        # GitHub renders that block as an ugly table, so it is injected only
+        # into the copy pushed to the Space, never committed to this repo.
+        run: |
+          {
+            echo '---'
+            echo 'title: VisionDerm'
+            echo 'emoji: 🔬'
+            echo 'colorFrom: indigo'
+            echo 'colorTo: purple'
+            echo 'sdk: docker'
+            echo 'app_port: 7860'
+            echo 'pinned: false'
+            echo '---'
+            echo
+            cat README.md
+          } > README.hf.md
+          mv README.hf.md README.md
+
+      - name: Push to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "::error::HF_TOKEN secret is not set. Add it under"
+            echo "::error::Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "chore: Space frontmatter for ${GITHUB_SHA::7}"
+          git push --force \
+            "https://user:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" \
+            HEAD:main
+          echo "Deployed to https://huggingface.co/spaces/${HF_SPACE}"
