@@ -21,5 +21,5 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   base: '/VisionDerm/',
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
 });
