@@ -46,7 +46,12 @@ export interface HealthInfo {
   default_engine: "classical" | "unet";
 }
 
-const API = "/api";
+const API_BASE = (
+  import.meta.env.VITE_API_URL ??
+  (import.meta.env.PROD ? "https://visionderm-1.onrender.com" : "")
+).replace(/\/$/, "");
+
+const API = `${API_BASE}/api`;
 
 export async function getHealth(): Promise<HealthInfo> {
   const r = await fetch(`${API}/health`);
@@ -57,7 +62,11 @@ export async function getHealth(): Promise<HealthInfo> {
 export async function listSamples(): Promise<SampleInfo[]> {
   const r = await fetch(`${API}/samples`);
   if (!r.ok) throw new Error(`samples ${r.status}`);
-  return r.json();
+  const samples: SampleInfo[] = await r.json();
+  return samples.map((s) => ({
+    ...s,
+    url: s.url.startsWith("http") ? s.url : `${API_BASE}${s.url}`,
+  }));
 }
 
 export interface SegmentOptions {
@@ -67,7 +76,7 @@ export interface SegmentOptions {
   engine: "auto" | "classical" | "unet";
   drawBoxes: boolean;
   /** Server-rendered overlay PNG. The UI renders from `lesions` + the mask,
-   *  so this is normally false - it saves roughly 1 MB per request. */
+   * so this is normally false - it saves roughly 1 MB per request. */
   includeOverlay: boolean;
 }
 
