@@ -46,6 +46,13 @@ export interface HealthInfo {
   default_engine: "classical" | "unet";
 }
 
+// const API_BASE = (
+//   import.meta.env.VITE_API_URL ??
+//   (import.meta.env.PROD ? "https://visionderm-1.onrender.com" : "")
+// ).replace(/\/$/, "");
+
+// const API = `${API_BASE}/api`;
+
 const API_BASE = (
   import.meta.env.VITE_API_URL ??
   (import.meta.env.PROD ? "https://visionderm-1.onrender.com" : "")
