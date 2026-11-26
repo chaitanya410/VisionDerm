@@ -69,11 +69,16 @@ export async function getHealth(): Promise<HealthInfo> {
 export async function listSamples(): Promise<SampleInfo[]> {
   const r = await fetch(`${API}/samples`);
   if (!r.ok) throw new Error(`samples ${r.status}`);
+  // const samples: SampleInfo[] = await r.json();
+  // return samples.map((s) => ({
+  //   ...s,
+  //   url: s.url.startsWith("http") ? s.url : `${API_BASE}${s.url}`,
+  // }));
   const samples: SampleInfo[] = await r.json();
-  return samples.map((s) => ({
-    ...s,
-    url: s.url.startsWith("http") ? s.url : `${API_BASE}${s.url}`,
-  }));
+return samples.map((s) => ({
+  ...s,
+  url: s.url.startsWith("http") ? s.url : `${API_BASE}${s.url}`,
+}));
 }
 
 export interface SegmentOptions {
